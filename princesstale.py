@@ -6,7 +6,7 @@ import threading
 from PIL import Image
 import time
 
-is_pixel = True
+is_pixel = False
 
 def connect_device():
     print("start to connect to device")
@@ -45,40 +45,43 @@ device = connect_device()
 red_threshold = 2239
 
 while True:
-    time.sleep(3)
+    time.sleep(1)
     image = device.screencap()
     img = cv2.imdecode(np.frombuffer(image, np.uint8), cv2.IMREAD_COLOR)
     # pixel 2 xl = 2880 x 1440
     if is_pixel:
         image = img[1300:1490, 1040:1230]
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        red_lower = np.array([169, 100, 100])
-        red_upper = np.array([189, 255, 255])
-        red_mask = cv2.inRange(hsv, red_lower, red_upper)
     else:
-        image = cv2.resize(img, (450, 800))
-        image = image[350:420, 320:390]
-        red_lower = np.array([10, 10, 100], np.uint8)
-        red_upper = np.array([200, 200, 255], np.uint8)
-        red_mask = cv2.inRange(image, red_lower, red_upper)
-        output = cv2.bitwise_and(image, image, mask=red_mask)
+        _image = cv2.resize(img, (450, 800))
+        image = _image[350:420, 320:390]
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    red_lower = np.array([169, 100, 100])
+    red_upper = np.array([189, 255, 255])
+    red_mask = cv2.inRange(hsv, red_lower, red_upper)
+# else:
+    #     image = cv2.resize(img, (450, 800))
+    #     image = image[350:420, 320:390]
+    #     red_lower = np.array([10, 10, 100], np.uint8)
+    #     red_upper = np.array([200, 200, 255], np.uint8)
+    #     red_mask = cv2.inRange(image, red_lower, red_upper)
+    #     output = cv2.bitwise_and(image, image, mask=red_mask)
     
     # if not is_pixel:
         # cv2.imshow('output', np.hstack([image, output]))
     # else:
-        # cv2.imshow('mask', red_mask)
+    cv2.imshow('mask', red_mask)
 
-    # if cv2.waitKey(25) == ord('q'):
-        # cv2.destroyAllWindows()
-        # break
+    if cv2.waitKey(25) == ord('q'):
+        cv2.destroyAllWindows()
+        break
     
     count_red = cv2.countNonZero(red_mask)
     print(count_red)
-    if count_red >= red_threshold and count_red != 2377 and count_red != 2365 and count_red != 2317 and is_pixel == False:
-        print("FOUND")
-        found = True
-        break
-    elif is_pixel and count_red >= 2100:
+    # if count_red >= red_threshold and count_red != 2377 and count_red != 2365 and count_red != 2317 and is_pixel == False:
+    #     print("FOUND")
+    #     found = True
+    #     break
+    if count_red >= 70:
         print("Found in pixel2")
         found = True
         break
